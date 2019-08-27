@@ -66,11 +66,13 @@ public class RawReturnData
         returnData.setStatus(status);
 
         ArrayList<T> returnList = new ArrayList<>();
-
-        for (JsonElement element : data.getAsJsonArray())
-        {
-            returnList.add(new Gson().fromJson(element, typeOfT));
+        if(data!=null){
+            for (JsonElement element : data.getAsJsonArray())
+            {
+                returnList.add(new Gson().fromJson(element, typeOfT));
+            }
         }
+
 
         returnData.setData(returnList);
 

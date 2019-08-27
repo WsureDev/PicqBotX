@@ -19,21 +19,21 @@ public class BotAccount
 {
     private final String name;
 
-    private final String postUrl;
-
-    private final int postPort;
+    private final String secret;
 
     private long id;
 
+    private final String token;
+
     private IcqHttpApi httpApi;
 
-    public BotAccount(String name, PicqBotX bot, String postUrl, int postPort)
+    public BotAccount(long id,String name, PicqBotX bot, String secret,String token)
     {
         this.name = name;
-        this.postUrl = postUrl;
-        this.postPort = postPort;
+        this.secret = secret;
+        this.token = token;
 
-        this.httpApi = new IcqHttpApi(bot, this, postUrl, postPort);
-        this.id = httpApi.getLoginInfo().getData().getUserId();
+        this.httpApi = new IcqHttpApi(bot, this);
+        this.id = id;
     }
 }

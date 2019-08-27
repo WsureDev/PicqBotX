@@ -54,7 +54,7 @@ public class AprilFoolsBot
         bot.setUniversalHyExpSupport(true);
 
         // 添加一个机器人账户 ( 名字, 发送URL, 发送端口 )
-        bot.addAccount("Bot01", "127.0.0.1", 31091);
+        bot.addAccount(3401442003L,"Bot01", "", "");
 
         // 注册事件监听器, 可以注册多个监听器
         bot.getEventManager().registerListeners(listeners);

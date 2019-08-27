@@ -1,7 +1,7 @@
 <h1 align="center">
   <br>
   <br>
-  PicqBotX
+  PicqBotX（websocket）
   <h4 align="center">
   一个基于 酷Q HTTP 插件 的 Java QQ 机器人类库
   </h4>
@@ -17,7 +17,7 @@
   <br>
 </h1>
 
-
+### 注意：本项目已经将http改为websocket方式，结果是BotAccount类变化较大，其余部分变化不大。
 
 <a name="maven"></a>
 Maven 导入:
@@ -33,47 +33,19 @@ Maven 导入:
     </repository>
 </repositories>
 ```
+clone本项目，导入编译器
 
-然后添加这个库:
+然后添加本项目依赖:
 
 ```xml
 <dependency>
     <groupId>com.github.hydevelop</groupId>
     <artifactId>PicqBotX</artifactId>
-    <version>4.10.1.928</version>
+    <version>4.10.1.928.1</version>
 </dependency>
 ```
 
 然后 Reimport 之后就导入好了!
-
-<br>
-
-<a name="gradle"></a>
-Gradle 导入:
---------
-
-没有添加 JitPack 的 Repo 的话首先添加 Repo, 在 pom 里面把这些粘贴进去:
-
-```gradle
-allprojects {
-    repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
-```
-
-然后添加这个库:
-
-```gradle
-dependencies {
-    implementation 'com.github.hydevelop:PicqBotX:4.10.1.928'
-}
-```
-
-<!-- 每次更新都要手动改这些版本号好烦的_(:з」∠)_... -->
-
-#### [其他导入(SBT / Leiningen)](https://jitpack.io/#hydevelop/PicqBotX/4.10.1.928)
 
 <br>
 
@@ -101,17 +73,39 @@ dependencies {
 
 #### 3. 配置 酷Q HTTP 插件:
 
-* 在 `io.github.richardchien.coolqhttpapi` 文件夹里创建一个文件名为 `config.cfg` 的配置文件
+* 在 `io.github.richardchien.coolqhttpapi` 文件夹里创建一个文件名为 `config` 的文件夹
+* 在其中建立文件`qq`号`.json`
 * 并在其中写入以下配置代码
 
-```
-[general]
-host=0.0.0.0
-port=酷Q端口
-post_url=http://127.0.0.1:Picq端口
+```json
+{
+    "host": "0.0.0.0",
+    "port": 5700,
+    "use_http": false,
+    "ws_host": "[::]",
+    "ws_port": 6700,
+    "use_ws": false,
+    "ws_reverse_url": "ws://127.0.0.1:8080",
+    "ws_reverse_reconnect_interval": 5000,
+    "ws_reverse_reconnect_on_code_1000": true,
+    "use_ws_reverse": true,
+	"ws_reverse_use_universal_client": true,
+    "post_url": "",
+    "access_token": "",
+    "secret": "",
+    "post_message_format": "string",
+    "serve_data_files": false,
+    "update_source": "github",
+    "update_channel": "stable",
+    "auto_check_update": true,
+    "auto_perform_update": true,
+    "show_log_console": true,
+    "log_level": "info"
+}
+
 ```
 
-* 把`酷Q端口`和`Picq端口`改成你的机器人程序里用的端口 (测试机器人的`酷Q端口`是`31091`, `Picq端口`是`31092`)
+* 因为配置了反向websocket，也就是服务端为你的项目，机器人端为客户端，所以只需要在`ws_reverse_url`内配置`websocket`端口号
 * 如果 酷Q 要和你的机器人程序分开运行的话, 请把`127.0.0.1`改成你的机器人部署的服务器的地址
 * 保存配置文件
 
@@ -158,8 +152,8 @@ PicqBotX bot = new PicqBotX(config);
 (一个酷Q端就是一个机器人账户嗯)
 
 ```java
-// 添加一个机器人账户 ( 传入名字, 酷Q URL, 酷Q端口 )
-bot.addAccount("Bot01", "127.0.0.1", 31091);
+// 添加一个机器人账户 ( 传入QQ,名字, token, secret )
+bot.addAccount(10000L,"Bot01", "aaa", "bbb");
 ```
 
 注册监听器: <br>
@@ -206,10 +200,10 @@ public class TestBot
     public static void main(String[] args)
     {
         // 创建机器人对象 ( 传入配置 )
-        PicqBotX bot = new PicqBotX(new PicqConfig(31092).setDebug(true));
+        PicqBotX bot = new PicqBotX(new PicqConfig(8080).setDebug(true));
 
-        // 添加一个机器人账户 ( 名字, 发送URL, 发送端口 )
-        bot.addAccount("Bot01", "127.0.0.1", 31091);
+        // 添加一个机器人账户 ( 传入QQ,名字, token, secret )
+        bot.addAccount(10000L,"Bot01", "aaa", "bbb");
 
         // 注册事件监听器, 可以注册多个监听器
         bot.getEventManager().registerListeners(

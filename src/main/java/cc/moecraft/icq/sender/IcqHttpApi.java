@@ -21,7 +21,9 @@ import com.google.gson.JsonParser;
 import lombok.Getter;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 import static cc.moecraft.icq.sender.HttpApiNode.*;
@@ -36,8 +38,6 @@ import static cc.moecraft.icq.utils.NetUtils.url;
 @SuppressWarnings("UnusedReturnValue")
 public class IcqHttpApi
 {
-    private final String baseUrl;
-
     protected final PicqBotX bot;
 
     protected final BotAccount account;
@@ -47,14 +47,11 @@ public class IcqHttpApi
      *
      * @param bot 机器人
      * @param account 账号
-     * @param host 主机地址
-     * @param port 端口
      */
-    public IcqHttpApi(PicqBotX bot, BotAccount account, String host, int port)
+    public IcqHttpApi(PicqBotX bot, BotAccount account)
     {
         this.bot = bot;
         this.account = account;
-        this.baseUrl = url(host, port);
     }
 
     /**
@@ -63,27 +60,9 @@ public class IcqHttpApi
      * @param api API节点
      * @return 完整URL
      */
-    public String makeUrl(HttpApiNode api)
+    public String makeAction(HttpApiNode api)
     {
-        String url = getBaseUrl() + api.getSubUrl();
-
-        // 不能异步的话直接返回
-        if (!api.isCanAsync())
-        {
-            return url;
-        }
-
-        // 有没有设置限制速度
-        if (bot.getConfig().isApiRateLimited())
-        {
-            return url + "_rate_limited";
-        }
-
-        // 有没有设置异步
-        if (bot.getConfig().isApiAsync())
-        {
-            return url + "_async";
-        }
+        String url = api.getSubUrl();
 
         // 全都没有的话直接返回
         return url;
@@ -99,16 +78,27 @@ public class IcqHttpApi
     public JsonElement send(HttpApiNode api, Map<String, Object> params)
     {
         // 创建请求
-        HttpRequest request = HttpRequest.post(makeUrl(api)).body(new JSONObject(params)).timeout(5000);
+//        HttpRequest request = HttpRequest.post(makeUrl(api)).body(new JSONObject(params)).timeout(5000);
 
-        // 判断有没有 Access Token, 并加到头上w
-        if (!bot.getConfig().getAccessToken().isEmpty())
-        {
-            request.header("Authorization", "Bearer " + bot.getConfig().getAccessToken());
-        }
+        Map<String,Object> body = new HashMap<String, Object>(){
+            {
+                put("action",makeAction(api));
+                put("params",params);
+            }
+        };
+
 
         // 发送并返回
-        return new JsonParser().parse(request.execute().body());
+        try {
+            return new JsonParser().parse(bot.getWebSocketServer().sendMessageTo(new JSONObject(body).toString(),""+account.getId()));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new JsonParser().parse("{\n" +
+                    "    \"status\": \"failed\",\n" +
+                    "    \"retcode\": 1404,\n" +
+                    "    \"data\": null\n" +
+                    "}");
+        }
     }
 
     /**

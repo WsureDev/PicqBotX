@@ -9,6 +9,7 @@ import cc.moecraft.icq.event.EventManager;
 import cc.moecraft.icq.exceptions.VerifyFailedException;
 import cc.moecraft.icq.listeners.HyExpressionListener;
 import cc.moecraft.icq.receiver.PicqHttpServer;
+import cc.moecraft.icq.receiver.WsWebSocketServer;
 import cc.moecraft.icq.sender.returndata.returnpojo.get.RVersionInfo;
 import cc.moecraft.icq.user.GroupManager;
 import cc.moecraft.icq.user.GroupUserManager;
@@ -22,6 +23,8 @@ import cc.moecraft.utils.HyExpressionResolver;
 import cc.moecraft.utils.ThreadUtils;
 import cn.hutool.http.HttpException;
 import lombok.Getter;
+
+import java.net.InetSocketAddress;
 
 import static cc.moecraft.icq.PicqConstants.HTTP_API_VERSION_DETECTION;
 import static cc.moecraft.icq.PicqConstants.VERSION;
@@ -52,6 +55,11 @@ public class PicqBotX
      * HTTP监听服务器
      */
     private PicqHttpServer httpServer;
+
+    /**
+     * WebSocket监听服务器
+     */
+    private WsWebSocketServer webSocketServer;
 
     /**
      * 事件管理器
@@ -172,7 +180,10 @@ public class PicqBotX
         logInitDone(logger, "账号管理器     ", 4, 2);
 
         // HTTP监听服务器
-        httpServer = new PicqHttpServer(config.getSocketPort(), this);
+//        httpServer = new PicqHttpServer(config.getSocketPort(), this);
+
+        webSocketServer = new WsWebSocketServer(new InetSocketAddress("localhost",config.getSocketPort()),this);
+
         logInitDone(logger, "HTTP监听服务器 ", 5, 1);
 
         logger.timing.clear();
@@ -182,22 +193,17 @@ public class PicqBotX
      * 添加机器人账号
      *
      * @param name 名字
-     * @param postUrl 发送URL (Eg. 127.0.0.1)
-     * @param postPort 发送端口 (Eg. 31091)
+     * @param token
+     * @param secret
      */
-    public void addAccount(String name, String postUrl, int postPort)
+    public void addAccount(long id,String name, String token,String secret)
     {
-        try
-        {
-            this.accountManager.addAccount(new BotAccount(name, this, postUrl, postPort));
-        }
-        catch (HttpException e)
-        {
-            logger.error("HTTP发送错误: " + e.getLocalizedMessage());
-            logger.error("- 检查一下是不是忘记开酷Q了, 或者写错地址了");
-            ThreadUtils.safeSleep(5);
-            throw new RuntimeException(e);
-        }
+        this.accountManager.addAccount(new BotAccount(id,name, this,token,secret));
+    }
+
+    public void addAccount(BotAccount botAccount)
+    {
+        this.accountManager.addAccount(botAccount);
     }
 
     /**
@@ -212,7 +218,7 @@ public class PicqBotX
         }
 
         logger.log(GREEN + "正在启动...");
-        httpServer.start();
+        webSocketServer.start();
     }
 
     /**
