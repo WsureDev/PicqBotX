@@ -1,15 +1,18 @@
 package cc.moecraft.icq.receiver;
 
 import cc.moecraft.icq.PicqBotX;
+import cc.moecraft.icq.receiver.callback.WSCallbackImpl;
+import cc.moecraft.icq.receiver.callback.WSReturn;
+import cc.moecraft.icq.receiver.callback.WSReturnImpl;
 import cc.moecraft.logger.HyLogger;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WsWebSocketServer extends WebSocketServer {
@@ -30,6 +33,7 @@ public class WsWebSocketServer extends WebSocketServer {
 
     private static ConcurrentHashMap<String, WsWebSocketServer> clients = new ConcurrentHashMap<String, WsWebSocketServer>();
 
+    private static ConcurrentHashMap<String, String> returnMessage = new ConcurrentHashMap<String, String>();
     private WebSocket webSocket;
 
     public WebSocket getWebSocket() {
@@ -47,7 +51,7 @@ public class WsWebSocketServer extends WebSocketServer {
         logger = bot.getLogger();
     }
 
-    public String sendMessageTo(String message, String userId) throws IOException {
+    public String sendMessageTo(String message, String userId,String echo) throws IOException {
         if(!isConnected(userId))
         {
             return "{\n" +
@@ -57,6 +61,7 @@ public class WsWebSocketServer extends WebSocketServer {
                     "}";
         }
         clients.get(userId).getWebSocket().send(message);
+        returnMessage.put(echo,echo);
         return "{\n" +
                 "    \"status\": \"ok\",\n" +
                 "    \"retcode\": 0,\n" +
@@ -68,7 +73,7 @@ public class WsWebSocketServer extends WebSocketServer {
         broadcast(message);
     }
 
-    public boolean isConnected(String userId){
+    public static boolean isConnected(String userId){
         return clients.keySet().contains(userId);
     }
 
@@ -104,6 +109,7 @@ public class WsWebSocketServer extends WebSocketServer {
             logger.log("X-Client-Role:"+clientHandshake.getFieldValue("X-Client-Role"));
         }
         clients.put(userId,this);
+        bot.addAccount(Long.parseLong(userId),null,null,null);
         addOnlineCount();
     }
 
@@ -119,6 +125,7 @@ public class WsWebSocketServer extends WebSocketServer {
         if (bot.getConfig().isDebug())
             logger.debug(userId+"- 数据: {}", message);
         // 调用事件
+        putReturnMessage(message);
         bot.getEventManager().getEventParser().call(message);
     }
 
@@ -130,5 +137,19 @@ public class WsWebSocketServer extends WebSocketServer {
     @Override
     public void onStart() {
         logger.log(this.getClass().getName()+":onStart!");
+    }
+
+    void putReturnMessage(String message){
+        JsonObject json = new JsonParser().parse(message).getAsJsonObject();
+        String echo = json.get("echo").getAsString();
+        if(echo!=null && !echo.isEmpty()){
+            returnMessage.put(echo,message);
+        }
+    }
+
+    String getReturnMessage(String echo){
+        String message = returnMessage.get(echo);
+        returnMessage.remove(echo);
+        return message;
     }
 }

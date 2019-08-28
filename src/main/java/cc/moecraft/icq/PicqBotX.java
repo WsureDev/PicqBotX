@@ -3,6 +3,7 @@ package cc.moecraft.icq;
 import cc.moecraft.icq.accounts.AccountManager;
 import cc.moecraft.icq.accounts.AccountManagerListener;
 import cc.moecraft.icq.accounts.BotAccount;
+import cc.moecraft.icq.accounts.CheakAccount;
 import cc.moecraft.icq.command.CommandListener;
 import cc.moecraft.icq.command.CommandManager;
 import cc.moecraft.icq.event.EventManager;
@@ -52,11 +53,6 @@ public class PicqBotX
     private final PicqConfig config;
 
     /**
-     * HTTP监听服务器
-     */
-    private PicqHttpServer httpServer;
-
-    /**
      * WebSocket监听服务器
      */
     private WsWebSocketServer webSocketServer;
@@ -65,6 +61,11 @@ public class PicqBotX
      * 事件管理器
      */
     private EventManager eventManager;
+
+    /**
+     * 机器人账号验证器
+     */
+    private CheakAccount cheakAccount;
 
     /**
      * 机器人账号管理器
@@ -127,6 +128,47 @@ public class PicqBotX
         this.config = config;
         if (init)
         {
+            this.cheakAccount = new CheakAccount() {
+                @Override
+                public boolean isLegal(BotAccount botAccount) {
+                    return super.isLegal(botAccount);
+                }
+            };
+            init();
+        }
+    }
+
+    /**
+     * 构造器
+     *
+     * @param socketPort 接收端口
+     */
+    public PicqBotX(int socketPort,CheakAccount cheakAccount)
+    {
+        this(new PicqConfig(socketPort),cheakAccount);
+    }
+    /**
+     * 构造器
+     *
+     * @param config Picq配置
+     */
+    public PicqBotX(PicqConfig config,CheakAccount cheakAccount)
+    {
+        this(config, true, cheakAccount);
+    }
+
+    /**
+     * 构造器
+     *
+     * @param config Picq配置
+     * @param init 是否启动服务器
+     */
+    public PicqBotX(PicqConfig config, boolean init,CheakAccount cheakAccount)
+    {
+        this.config = config;
+        if (init)
+        {
+            this.cheakAccount = cheakAccount;
             init();
         }
     }
@@ -140,7 +182,6 @@ public class PicqBotX
     {
         this(new PicqConfig(socketPort));
     }
-
     /**
      * 初始化
      */
@@ -198,12 +239,13 @@ public class PicqBotX
      */
     public void addAccount(long id,String name, String token,String secret)
     {
-        this.accountManager.addAccount(new BotAccount(id,name, this,token,secret));
+        this.accountManager.addAccount(cheakAccount,new BotAccount(id,name, this,token,secret));
     }
 
-    public void addAccount(BotAccount botAccount)
+    public void addAccount(Long id)
     {
-        this.accountManager.addAccount(botAccount);
+        if(id!=null)
+            this.accountManager.addAccount(cheakAccount,new BotAccount(id,null,null,null,null));
     }
 
     /**

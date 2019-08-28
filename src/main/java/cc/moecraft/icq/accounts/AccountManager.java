@@ -5,10 +5,7 @@ import cc.moecraft.icq.sender.IcqHttpApi;
 import cc.moecraft.icq.sender.returndata.returnpojo.get.RGroup;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -36,7 +33,6 @@ public class AccountManager
      * 机器人QQ号索引, [QQ号, 机器人号实例]
      */
     private Map<Long, BotAccount> idIndex;
-
     /**
      * 构造器: 初始化账号列表
      */
@@ -51,10 +47,22 @@ public class AccountManager
      *
      * @param accounts 账号信息
      */
-    public void addAccount(BotAccount... accounts)
+    public void addAccount(CheakAccount cheakAccount,BotAccount... accounts)
     {
-        this.accounts.addAll(new ArrayList<>(Arrays.asList(accounts)));
-        refreshCache();
+        List<BotAccount> botAccountList = new ArrayList<>(Arrays.asList(accounts));
+        Iterator<BotAccount> it = botAccountList.iterator();
+        while(it.hasNext()){
+            BotAccount x = it.next();
+            if (!cheakAccount.isLegal(x)) {
+                it.remove();
+            }
+        }
+        if(!botAccountList.isEmpty())
+        {
+            this.accounts.addAll(botAccountList);
+            refreshCache();
+        }
+
     }
 
     /**

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static cc.moecraft.icq.sender.HttpApiNode.*;
 import static cc.moecraft.icq.utils.NetUtils.url;
@@ -79,18 +80,19 @@ public class IcqHttpApi
     {
         // 创建请求
 //        HttpRequest request = HttpRequest.post(makeUrl(api)).body(new JSONObject(params)).timeout(5000);
-
+        String echo = UUID.randomUUID().toString();
         Map<String,Object> body = new HashMap<String, Object>(){
             {
                 put("action",makeAction(api));
                 put("params",params);
+                put("echo",echo);
             }
         };
 
 
         // 发送并返回
         try {
-            return new JsonParser().parse(bot.getWebSocketServer().sendMessageTo(new JSONObject(body).toString(),""+account.getId()));
+            return new JsonParser().parse(bot.getWebSocketServer().sendMessageTo(new JSONObject(body).toString(),""+account.getId(),echo));
         } catch (IOException e) {
             e.printStackTrace();
             return new JsonParser().parse("{\n" +
