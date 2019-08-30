@@ -6,6 +6,7 @@ import cc.moecraft.icq.event.events.local.EventLocalSendDiscussMessage;
 import cc.moecraft.icq.event.events.local.EventLocalSendGroupMessage;
 import cc.moecraft.icq.event.events.local.EventLocalSendPrivateMessage;
 import cc.moecraft.icq.event.events.message.EventGroupMessage.Anonymous;
+import cc.moecraft.icq.receiver.callback.WSSender;
 import cc.moecraft.icq.sender.returndata.RawReturnData;
 import cc.moecraft.icq.sender.returndata.ReturnData;
 import cc.moecraft.icq.sender.returndata.ReturnListData;
@@ -13,7 +14,6 @@ import cc.moecraft.icq.sender.returndata.returnpojo.ReturnPojoBase;
 import cc.moecraft.icq.sender.returndata.returnpojo.get.*;
 import cc.moecraft.icq.sender.returndata.returnpojo.send.RMessageReturnData;
 import cc.moecraft.utils.MapBuilder;
-import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -21,7 +21,6 @@ import com.google.gson.JsonParser;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,11 +88,17 @@ public class IcqHttpApi
             }
         };
 
-
         // 发送并返回
         try {
-            return new JsonParser().parse(bot.getWebSocketServer().sendMessageTo(new JSONObject(body).toString(),""+account.getId(),echo));
-        } catch (IOException e) {
+            String message = new JSONObject(body).toString();
+            account.getWebSocket().send(message);
+            WSSender sender = new WSSender(bot.getWebSocketServer());
+            sender.sendMessage(echo,message);
+
+            return new JsonParser().parse(
+                    sender.getResponse()
+            );
+        } catch (Exception e) {
             e.printStackTrace();
             return new JsonParser().parse("{\n" +
                     "    \"status\": \"failed\",\n" +

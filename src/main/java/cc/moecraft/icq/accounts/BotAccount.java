@@ -4,6 +4,7 @@ import cc.moecraft.icq.PicqBotX;
 import cc.moecraft.icq.sender.IcqHttpApi;
 import lombok.Data;
 import lombok.Getter;
+import org.java_websocket.WebSocket;
 
 /**
  * 此类由 Hykilpikonna 在 2018/08/25 创建!
@@ -26,7 +27,7 @@ public class BotAccount
     private final String token;
 
     private IcqHttpApi httpApi;
-
+    private WebSocket webSocket;
     public BotAccount(long id,String name, PicqBotX bot, String secret,String token)
     {
         this.name = name;
@@ -35,5 +36,17 @@ public class BotAccount
 
         this.httpApi = new IcqHttpApi(bot, this);
         this.id = id;
+        this.webSocket = null;
     }
+    public BotAccount(long id,String name, PicqBotX bot, String secret,String token,WebSocket webSocket)
+    {
+        this.name = name;
+        this.secret = secret;
+        this.token = token;
+
+        this.httpApi = new IcqHttpApi(bot, this);
+        this.id = id;
+        this.webSocket = webSocket;
+    }
+
 }

@@ -9,8 +9,7 @@ import cc.moecraft.icq.command.CommandManager;
 import cc.moecraft.icq.event.EventManager;
 import cc.moecraft.icq.exceptions.VerifyFailedException;
 import cc.moecraft.icq.listeners.HyExpressionListener;
-import cc.moecraft.icq.receiver.PicqHttpServer;
-import cc.moecraft.icq.receiver.WsWebSocketServer;
+import cc.moecraft.icq.receiver.PicqWebSocketServer;
 import cc.moecraft.icq.sender.returndata.returnpojo.get.RVersionInfo;
 import cc.moecraft.icq.user.GroupManager;
 import cc.moecraft.icq.user.GroupUserManager;
@@ -21,7 +20,6 @@ import cc.moecraft.logger.environments.ConsoleColoredEnv;
 import cc.moecraft.logger.environments.FileEnv;
 import cc.moecraft.logger.format.AnsiColor;
 import cc.moecraft.utils.HyExpressionResolver;
-import cc.moecraft.utils.ThreadUtils;
 import cn.hutool.http.HttpException;
 import lombok.Getter;
 
@@ -55,7 +53,7 @@ public class PicqBotX
     /**
      * WebSocket监听服务器
      */
-    private WsWebSocketServer webSocketServer;
+    private PicqWebSocketServer webSocketServer;
 
     /**
      * 事件管理器
@@ -223,7 +221,7 @@ public class PicqBotX
         // HTTP监听服务器
 //        httpServer = new PicqHttpServer(config.getSocketPort(), this);
 
-        webSocketServer = new WsWebSocketServer(new InetSocketAddress("localhost",config.getSocketPort()),this);
+        webSocketServer = new PicqWebSocketServer(new InetSocketAddress("localhost",config.getSocketPort()),this);
 
         logInitDone(logger, "HTTP监听服务器 ", 5, 1);
 
@@ -241,7 +239,10 @@ public class PicqBotX
     {
         this.accountManager.addAccount(cheakAccount,new BotAccount(id,name, this,token,secret));
     }
-
+    public void addAccount(BotAccount account)
+    {
+        this.accountManager.addAccount(cheakAccount,account);
+    }
     public void addAccount(Long id)
     {
         if(id!=null)

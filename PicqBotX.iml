@@ -11,6 +11,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.java-websocket:Java-WebSocket:1.4.0" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: com.github.hydevelop:HyLogger:4.0.254" level="project" />
     <orderEntry type="library" name="Maven: com.github.HyDevelop:HyCommonUtils:1.4.0.207" level="project" />
     <orderEntry type="library" name="Maven: cn.hutool:hutool-all:4.6.3" level="project" />
