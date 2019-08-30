@@ -144,10 +144,16 @@ PicqConfig config = new PicqConfig(31092);
 接下来创建一个机器人对象:
 
 ```java
-// 创建机器人对象 ( 传入机器人配置对象 )
-PicqBotX bot = new PicqBotX(config);
+// 创建机器人对象 ( 传入配置 )
+        PicqBotX bot = new PicqBotX(new PicqConfig(postPort).setDebug(true), new CheakAccount() {
+            @Override
+            public boolean isLegal(BotAccount botAccount) {
+                logger.info("Check Account :{}",botAccount.getId());
+                return true;
+            }
+        });
 ```
-
+<del>
 接下来要添加机器人账户:<br>
 (一个酷Q端就是一个机器人账户嗯)
 
@@ -155,6 +161,9 @@ PicqBotX bot = new PicqBotX(config);
 // 添加一个机器人账户 ( 传入QQ,名字, token, secret )
 bot.addAccount(10000L,"Bot01", "aaa", "bbb");
 ```
+</del>
+
+#### 注:由于反向websocket方式不需要手动添加账号，此设置已经无效，取而代之的是配置检查账号的方法。可以自己继承抽象方法自己实现，后续会加入拒绝握手。
 
 注册监听器: <br>
 可以注册多个监听器, <br>
@@ -200,10 +209,19 @@ public class TestBot
     public static void main(String[] args)
     {
         // 创建机器人对象 ( 传入配置 )
-        PicqBotX bot = new PicqBotX(new PicqConfig(8080).setDebug(true));
+        PicqBotX bot = new PicqBotX(new PicqConfig(8080).setDebug(true), new CheakAccount() {
+               @Override
+               public boolean isLegal(BotAccount botAccount) {
+                   logger.info("Check Account :{}",botAccount.getId());
+                   return true;
+               }
+           });
 
         // 添加一个机器人账户 ( 传入QQ,名字, token, secret )
-        bot.addAccount(10000L,"Bot01", "aaa", "bbb");
+        /** 已经不需要了
+        *       bot.addAccount(10000L,"Bot01", "aaa", "bbb");
+        */
+        
 
         // 注册事件监听器, 可以注册多个监听器
         bot.getEventManager().registerListeners(
